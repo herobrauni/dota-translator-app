@@ -19,7 +19,8 @@ import { POWERSHELL } from './memsource.js';
 import { faces, readIndex } from './heroface.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-export const ROW_SCRIPT = path.join(HERE, 'rowgrab.ps1').replace('app.asar' + path.sep, 'app.asar.unpacked' + path.sep);
+export const ROW_SCRIPT = path.join(HERE, process.platform === 'win32' ? 'rowgrab.ps1' : 'rowgrab.py').replace('app.asar' + path.sep, 'app.asar.unpacked' + path.sep);
+export const ROW_EXE = process.platform === 'win32' ? POWERSHELL : (process.env.PYTHON || 'python3');
 
 // MEASURED over a whole match and a replay: the right hero 0.89-0.93 beside
 // a chat row, the best wrong one 0.51-0.66, a grab of anything else < 0.73.
@@ -117,8 +118,11 @@ export function startRowGrab({ dotaDir, refs, spawnImpl = spawn, parentPid = pro
 
   function start() {
     if (stopped) return;
-    const args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', ROW_SCRIPT, '-ParentPid', String(parentPid), '-Refs', folder];
-    child = spawnImpl(POWERSHELL, args, { windowsHide: true, stdio: ['pipe', 'pipe', 'ignore'] });
+    const isWin = process.platform === 'win32';
+    const args = isWin
+      ? ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', ROW_SCRIPT, '-ParentPid', String(parentPid), '-Refs', folder]
+      : [ROW_SCRIPT, '-ParentPid', String(parentPid), '-Refs', folder];
+    child = spawnImpl(ROW_EXE, args, { windowsHide: true, stdio: ['pipe', 'pipe', 'ignore'] });
     child.stdout.setEncoding('utf8');
     child.stdout.on('data', (chunk) => {
       buffer += chunk;

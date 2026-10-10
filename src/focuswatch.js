@@ -8,7 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { POWERSHELL } from './memsource.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-export const FOCUS_SCRIPT = path.join(HERE, 'focuswatch.ps1').replace('app.asar' + path.sep, 'app.asar.unpacked' + path.sep);
+export const FOCUS_SCRIPT = path.join(HERE, process.platform === 'win32' ? 'focuswatch.ps1' : 'focuswatch.py').replace('app.asar' + path.sep, 'app.asar.unpacked' + path.sep);
+export const FOCUS_EXE = process.platform === 'win32' ? POWERSHELL : (process.env.PYTHON || 'python3');
 
 export function startFocusWatch({ onFocus = () => {}, onWindow = () => {}, spawnImpl = spawn, parentPid = process.pid, processName, restartMs = 2000 } = {}) {
   let child = null;
@@ -17,9 +18,12 @@ export function startFocusWatch({ onFocus = () => {}, onWindow = () => {}, spawn
 
   function start() {
     if (stopped) return;
-    const args = ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', FOCUS_SCRIPT, '-ParentPid', String(parentPid)];
+    const isWin = process.platform === 'win32';
+    const args = isWin
+      ? ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', FOCUS_SCRIPT, '-ParentPid', String(parentPid)]
+      : [FOCUS_SCRIPT, '-ParentPid', String(parentPid)];
     if (processName && /^[A-Za-z0-9_.-]{1,64}$/.test(processName)) args.push('-ProcessName', processName);
-    child = spawnImpl(POWERSHELL, args, { windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] });
+    child = spawnImpl(FOCUS_EXE, args, { windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] });
     child.stdout.setEncoding('utf8');
     child.stdout.on('data', (chunk) => {
       buffer += chunk;

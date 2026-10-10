@@ -10,7 +10,8 @@ import { fileURLToPath } from 'node:url';
 import { POWERSHELL } from './memsource.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-export const SEND_SCRIPT = path.join(HERE, 'sendchat.ps1').replace('app.asar' + path.sep, 'app.asar.unpacked' + path.sep);
+export const SEND_SCRIPT = path.join(HERE, process.platform === 'win32' ? 'sendchat.ps1' : 'sendchat.py').replace('app.asar' + path.sep, 'app.asar.unpacked' + path.sep);
+export const SEND_EXE = process.platform === 'win32' ? POWERSHELL : (process.env.PYTHON || 'python3');
 
 const NL = String.fromCharCode(10);
 
@@ -28,7 +29,11 @@ export function createKeySender({ spawnImpl = spawn, script = SEND_SCRIPT, timeo
     if (child || stopped) return;
     buffer = '';
     try {
-      const c = spawnImpl(POWERSHELL, ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', script], { windowsHide: true, stdio: ['pipe', 'pipe', 'ignore'] });
+      const isWin = process.platform === 'win32';
+      const args = isWin
+        ? ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', script]
+        : [script];
+      const c = spawnImpl(SEND_EXE, args, { windowsHide: true, stdio: ['pipe', 'pipe', 'ignore'] });
       child = c;
       c.stdout.on('data', (d) => {
         buffer += String(d);

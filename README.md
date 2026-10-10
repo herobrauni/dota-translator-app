@@ -286,6 +286,13 @@ Worth knowing if you are reviewing the code:
 - An emoticon on its own arrives as an empty message and is not shown. A
   bot's canned phrases were seen NOT to arrive in the feed at all.
 
+## Linux Support
+
+The app supports Linux natively (X11 and Wayland compositors via Xwayland):
+- Steam and Dota 2 paths are detected automatically across standard Steam roots (`~/.local/share/Steam`, `~/.steam`, Flatpak, Snap, etc.) or via `STEAM_PATH` / `DOTA_DIR` environment variables.
+- Focus detection, window geometry, portrait row grab, and chat sending are implemented via lightweight Python helper scripts ([`src/focuswatch.py`](src/focuswatch.py), [`src/rowgrab.py`](src/rowgrab.py), [`src/sendchat.py`](src/sendchat.py)).
+- Dependencies for screen grab and keyboard macros on Linux: `python3`, `python3-numpy`, `xdotool`, and `imagemagick` (for `import`).
+
 ## Testing
 
 ```bash

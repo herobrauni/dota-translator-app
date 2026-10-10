@@ -30,7 +30,10 @@ export function startWatchingGsi(cfg, handlers = {}, { ensure = ensureGsiConfig,
   }
   // Where the game's own portraits and font are: the memory helper reports
   // the exe for this, and here the install folder is already known.
-  if (made.dotaDir && handlers.onGamePath) handlers.onGamePath(path.join(made.dotaDir, '..', 'bin', 'win64', 'dota2.exe'));
+  if (made.dotaDir && handlers.onGamePath) {
+    const binRel = process.platform === 'win32' ? path.join('bin', 'win64', 'dota2.exe') : path.join('bin', 'linuxsteamrt64', 'dota2');
+    handlers.onGamePath(path.join(made.dotaDir, '..', binRel));
+  }
   // Whether the game is in front: the overlay hides on it and the say-back
   // key exists only then. The feed cannot say; Windows can.
   // And where the game's chat is: the feed cannot say that either, and the

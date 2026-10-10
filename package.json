@@ -6,12 +6,14 @@
   "type": "module",
   "main": "src/main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "ELECTRON_OZONE_PLATFORM_HINT=x11 electron .",
     "watch": "node src/watch.js",
     "test": "node test.js",
     "demo": "node src/demo.js",
     "doctor": "node src/doctor.js",
-    "dist": "electron-builder --win nsis --publish never",
+    "dist": "electron-builder --publish never",
+    "dist:win": "electron-builder --win nsis --publish never",
+    "dist:linux": "electron-builder --linux AppImage --publish never",
     "release": "electron-builder --win nsis --publish always"
   },
   "devDependencies": {
@@ -38,10 +40,19 @@
     ],
     "asarUnpack": [
       "src/*.ps1",
+      "src/*.py",
       "docs/**/*"
     ],
     "directories": {
       "output": "dist"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "tar.gz"
+      ],
+      "category": "Game",
+      "icon": "build/icon.ico"
     },
     "win": {
       "target": [
