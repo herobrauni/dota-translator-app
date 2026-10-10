@@ -6,7 +6,25 @@
 import { app, BrowserWindow, screen, ipcMain, globalShortcut, safeStorage, shell, Tray, Menu, nativeImage, clipboard } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
+import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+
+// On Linux under Wayland, Chromium's native Wayland backend forbids global shortcuts
+// and absolute window positioning. Running via Xwayland (ozone platform x11) enables
+// both. Re-launch with the flag if started without it.
+if (process.platform === 'linux' &&
+    process.env.DISPLAY &&
+    process.env.ELECTRON_OZONE_PLATFORM_HINT !== 'x11' &&
+    !process.argv.includes('--ozone-platform=x11')) {
+  const binary = process.env.APPIMAGE || process.execPath;
+  const child = spawn(binary, ['--ozone-platform=x11', ...process.argv.slice(1)], {
+    env: { ...process.env, ELECTRON_OZONE_PLATFORM_HINT: 'x11' },
+    detached: true,
+    stdio: 'inherit'
+  });
+  child.unref();
+  process.exit(0);
+}
 import { loadConfig, saveConfig, onDisk, CONFIG_PATH, DATA_DIR, NO_KEY } from './config.js';
 import { faces } from './heroface.js';
 import { createPatchWatch, SLOW_TEXT } from './patchwatch.js';

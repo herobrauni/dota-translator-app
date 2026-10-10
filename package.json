@@ -48,11 +48,13 @@
     },
     "linux": {
       "target": [
-        "AppImage",
-        "tar.gz"
+        "AppImage"
       ],
       "category": "Game",
-      "icon": "build/icon.ico"
+      "icon": "build/icon.png",
+      "executableArgs": [
+        "--ozone-platform=x11"
+      ]
     },
     "win": {
       "target": [
